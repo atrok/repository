@@ -1,5 +1,7 @@
 package cards.gameLogic;
 
+
+
 /**
  * An object of type Card represents a playing card from a
  * standard Poker deck, including Jokers.  The card has a suit, which
@@ -12,7 +14,7 @@ package cards.gameLogic;
  */
 
 public class Card {
-   
+   /*
    public final static int SPADES = 0;   // Codes for the 4 suits, plus Joker.
    public final static int HEARTS = 1;
    public final static int DIAMONDS = 2;
@@ -29,7 +31,7 @@ public class Card {
     * CLUBS, or JOKER.  The suit cannot be changed after the card is
     * constructed.
     */
-   private final int suit; 
+   private final Suit suit; 
    
    /**
     * The card's value.  For a normal card, this is one of the values
@@ -37,15 +39,15 @@ public class Card {
     * can be anything.  The value cannot be changed after the card
     * is constructed.
     */
-   private final int value;
+   private final Value value;
    
    /**
     * Creates a Joker, with 1 as the associated value.  (Note that
     * "new Card()" is equivalent to "new Card(1,Card.JOKER)".)
     */
    public Card() {
-      suit = JOKER;
-      value = 1;
+      suit = Suit.CLUBS;
+      value = Value.JOKER;
    }
    
    /**
@@ -59,11 +61,11 @@ public class Card {
     * @throws IllegalArgumentException if the parameter values are not in the
     * permissible ranges
     */
-   public Card(int theValue, int theSuit) {
-      if (theSuit != SPADES && theSuit != HEARTS && theSuit != DIAMONDS && 
-            theSuit != CLUBS && theSuit != JOKER)
+   public Card(Value theValue, Suit theSuit) {
+      if (theSuit != Suit.SPADES && theSuit != Suit.HEARTS && theSuit != Suit.DIAMONDS && 
+            theSuit != Suit.CLUBS)
          throw new IllegalArgumentException("Illegal playing card suit");
-      if (theSuit != JOKER && (theValue < 1 || theValue > 13))
+      if ((theValue.value() < 1 || theValue.value() > 13))
          throw new IllegalArgumentException("Illegal playing card value");
       value = theValue;
       suit = theSuit;
@@ -74,7 +76,7 @@ public class Card {
     * @returns the suit, which is one of the constants Card.SPADES, 
     * Card.HEARTS, Card.DIAMONDS, Card.CLUBS, or Card.JOKER
     */
-   public int getSuit() {
+   public Suit getSuit() {
       return suit;
    }
    
@@ -83,7 +85,7 @@ public class Card {
     * @return the value, which is one of the numbers 1 through 13, inclusive for
     * a regular card, and which can be any value for a Joker.
     */
-   public int getValue() {
+   public Value getValue() {
       return value;
    }
    
@@ -93,13 +95,7 @@ public class Card {
     * or "Joker".
     */
    public String getSuitAsString() {
-      switch ( suit ) {
-      case SPADES:   return "Spades";
-      case HEARTS:   return "Hearts";
-      case DIAMONDS: return "Diamonds";
-      case CLUBS:    return "Clubs";
-      default:       return "Joker";
-      }
+	   return suit.toString();
    }
    
    /**
@@ -109,25 +105,12 @@ public class Card {
     * string is always numerical.
     */
    public String getValueAsString() {
-      if (suit == JOKER)
-         return "" + value;
+      if (value == Value.JOKER)
+         return "" + value.value();
       else {
-         switch ( value ) {
-         case 1:   return "Ace";
-         case 2:   return "2";
-         case 3:   return "3";
-         case 4:   return "4";
-         case 5:   return "5";
-         case 6:   return "6";
-         case 7:   return "7";
-         case 8:   return "8";
-         case 9:   return "9";
-         case 10:  return "10";
-         case 11:  return "Jack";
-         case 12:  return "Queen";
-         default:  return "King";
+    	  return value.toString();
          }
-      }
+      
    }
    
    /**
@@ -138,13 +121,8 @@ public class Card {
     * "Joker", "Joker #2"
     */
    public String toString() {
-      if (suit == JOKER) {
-         if (value == 1)
-            return "Joker";
-         else
-            return "Joker #" + value;
-      }
-      else
+         if (value.value() == 1)
+            return "Joker #" + value.value();
          return getValueAsString() + " of " + getSuitAsString();
    }
    

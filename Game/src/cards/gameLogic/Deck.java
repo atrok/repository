@@ -1,11 +1,27 @@
 package cards.gameLogic;
 
+import java.util.ArrayList;
+import java.util.List;
+
 abstract public  class Deck {
 
     /**
      * Constructor.  Create an unshuffled deck of cards.
      */
-    public Deck();
+	List cards=new ArrayList();
+    
+	public Deck(){
+
+//		int i;
+		for (Suit s: Suit.values()){
+			
+			for (Value f: Value.values()){
+				
+					cards.add(new Card(f,s));
+				}
+		}
+
+    };
 
     /**
      * Put all the used cards back into the deck,
