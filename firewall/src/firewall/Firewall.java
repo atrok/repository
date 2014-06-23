@@ -9,7 +9,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -25,13 +28,15 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
-
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HTTP;
 import org.apache.http.util.EntityUtils;
-import org.w3c.dom.Document;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.xml.sax.SAXException;
 
 public class Firewall {
@@ -41,132 +46,126 @@ public class Firewall {
 	 */
 	    // global constants and variables
 	    private static final int PORT = 80;     // server details
-	    private static final String HOST = "http://192.168.1.254/cgi-bin/packetfilter.ha";
+	    private static final String HOST = "http://192.168.1.254";
+	    private static final String PacketFilterUrl="/cgi-bin/packetfilter.ha";
+	    private static final String LoginUrl="/cgi-bin/login.ha";
+	    
+	    
         private static final String deviceCode = "3287024592";
         
-	    private Socket sock;
-	    private BufferedReader in;     // i/o for the client
-	    private PrintWriter out;
+        
+        private static final String LOGIN="Login";
+        private static final String PACKETFILTER="Packet Filter";
+        
+        static HashMap<String,String> PacketFilterInputsAdd=new HashMap<String,String>();
+        static HashMap<String,String> LoginInputsAdd=new HashMap<String,String>();
+        
+		
+    //    private static final name="pass" value="drop" />
+        private static URLOptions url;
+        String errormessage="";
+        String title="";        
+    
+	    private Document cachedPage;
 	    
 		// TODO Auto-generated method stub
 		public static void main(String[] args) throws Exception {
-			getFluent();
+			Firewall firewall=new Firewall();
+			url=new URLOptions();
+			url.setHost(HOST);
+			url.setData(deviceCode);
+			
+			
+			
+			//String urltogo=PacketFilterUrl;
+			//PacketFilterInputsAdd.put("nonce","");
+			PacketFilterInputsAdd.put("enfilter","on");
+			PacketFilterInputsAdd.put("pass","drop");
+			PacketFilterInputsAdd.put("sourceip","0.0.0.0-255.255.255.255");
+			PacketFilterInputsAdd.put("destip","192.168.1.72");
+			PacketFilterInputsAdd.put("sourceport","");
+			PacketFilterInputsAdd.put("destport","");
+			PacketFilterInputsAdd.put("proto","udp");
+			PacketFilterInputsAdd.put("Change","Change");
+			
+			LoginInputsAdd.put("pass",deviceCode);
+			/*
+			Elements els=doc.select("input");
+			for (Element el: els){
+				PacketFilterInputsAdd.put(el.attr("name"),el.attr("value"));
+				System.out.println(el.attr("name")+" : "+el.attr("value"));
+			}
+			*/
+			
+			while (firewall.errormessage.length()==0){
+			
+			switch(firewall.title){
+			case LOGIN:
+				firewall.execute(url.getHost()+LoginUrl, LoginInputsAdd);
+				
+				
+				break;
+			case PACKETFILTER:
+				firewall.execute(url.getHost()+PacketFilterUrl, PacketFilterInputsAdd);
+
+				//System.out.print(doc.html().toString());
+				break;
+			default: firewall.execute(url.getHost()+PacketFilterUrl, PacketFilterInputsAdd);
+ 
+			}
+			}
 
 	    }
 		
-		
-		public static void getOldWay() throws Exception{
-			
-	        URL oracle = new URL(HOST);
-	        BufferedReader in = new BufferedReader(
-	        new InputStreamReader(oracle.openStream()));
+		private Document execute(String urltogo, HashMap<String,String> options) throws IOException{
+			if (null!=cachedPage){
+				
+			String nonce=cachedPage.select("input[name*=nonce]").attr("value");
+			options.put("nonce",nonce);
+			}
+			Document doc=Jsoup.connect(urltogo)
+			.data(options)
+			.post();
 
-	        String inputLine;
-	        while ((inputLine = in.readLine()) != null)
-	            System.out.println(inputLine);
-	        in.close();
-		}
-		
-		public static void postRequest() throws Exception{
-			List<NameValuePair> formparams = new ArrayList<NameValuePair>();
-			formparams.add(new BasicNameValuePair("nonce", "58aa5c4d00274767cd071dd381dc479d587c3c6dddca0427"));
-			formparams.add(new BasicNameValuePair("password", deviceCode));
-			UrlEncodedFormEntity entity = new UrlEncodedFormEntity(formparams, Consts.UTF_8);
-			HttpPost httppost = new HttpPost(HOST);
-			httppost.setEntity(entity);
 			
-			CloseableHttpClient httpclient = HttpClients.createDefault();
-			CloseableHttpResponse response = httpclient.execute(httppost);
-			try {
-				 HttpEntity entity_response = response.getEntity();
-				 if (entity_response != null) {
-				 long len = entity_response.getContentLength();
-				 if (len != -1 && len < 2048) {
-				 System.out.println(EntityUtils.toString(entity));
-				 } else {
-				 // Stream content out
-					 
-					 BufferedReader in = new BufferedReader(
-						        new InputStreamReader(entity_response.getContent()));
 
-						        String inputLine;
-						        while ((inputLine = in.readLine()) != null)
-						            System.out.println(inputLine);
-						        in.close();
-				 }
-				 }
-				} finally {
-				 response.close();
+			String action=doc.select("form").attr("action");
+			System.out.print(action);
+			
+			Elements rules=doc.select("table.grid tr");
+			
+			HashMap<Integer,LinkedList<String>> rulesMap=new HashMap<Integer,LinkedList<String>>();
+			int i=0;
+			for (Element el:rules){
+				i++;
+				LinkedList<String> list=new LinkedList<String>();
+				String str="";
+				Elements td=el.select("td");
+				for (Element e:td){
+					if (e.select("input").hasAttr("type")){
+						list.add(e.select("input").attr("name"));
+					}else{
+						list.add(e.html().toString());
+					}
+					str=str+e.html().toString();
 				}
-
-			
-		}
-		
-		public static void getRequest() throws Exception {
-			
-			CloseableHttpClient httpclient = HttpClients.createDefault();
-			HttpGet httpget = new HttpGet(HOST);
-			CloseableHttpResponse response = httpclient.execute(httpget);
-			try {
-			 HttpEntity entity = response.getEntity();
-			 if (entity != null) {
-			 InputStream instream = entity.getContent();
-			 try {
-			 // do something useful
-				 BufferedReader in = new BufferedReader(
-					        new InputStreamReader(instream));
-				 String inputLine;
-			        while ((inputLine = in.readLine()) != null)
-			            System.out.println(inputLine);
-			        in.close();
-			 } finally {
-			 instream.close();
-			 }
-			 }
-			} finally {
-			 response.close();
+				rulesMap.put(i, list);
+				System.out.println(str);
 			}
 
+			
+			String errormessage=doc.select("div#error-message-text").toString();
+			System.out.println(errormessage);
+			
+			System.out.print(doc.html().toString());
+			try{
+			errormessage=cachedPage.select("div#error-message-text").toString();
+			}catch(Exception e){ System.out.print("errormessage doesn't exists"+e.getStackTrace().toString());}
+			
+			title=cachedPage.select("title").text();
+			
+			cachedPage=doc;
+			return doc;
 		}
 		
-		public static void getFluent() throws Exception{
-			
-			Document result = Request.Get(HOST)
-					 .execute().handleResponse(new ResponseHandler<Document>() {
-					 @SuppressWarnings("deprecation")
-						public Document handleResponse(final HttpResponse response) throws IOException {
-						 StatusLine statusLine = response.getStatusLine();
-						 HttpEntity entity = response.getEntity();
-						 if (statusLine.getStatusCode() >= 300) {
-							 throw new HttpResponseException(
-								 statusLine.getStatusCode(),
-								 statusLine.getReasonPhrase());
-						 	}
-						 if (entity == null) {
-							 throw new ClientProtocolException("Response contains no content");
-						 	}
-						 DocumentBuilderFactory dbfac = DocumentBuilderFactory.newInstance();
-						 try {
-							 DocumentBuilder docBuilder = dbfac.newDocumentBuilder();
-							 ContentType contentType = ContentType.getOrDefault(entity);
-							/* if (!contentType.equals(ContentType.APPLICATION_XML)) {
-								 throw new ClientProtocolException("Unexpected content type:" +
-										 	contentType);
-							 	}
-							 	*/
-							 String charset = contentType.getCharset().toString();
-							 if (charset == null) {
-								 	charset = HTTP.DEFAULT_CONTENT_CHARSET;
-							 }
-							 return docBuilder.parse(entity.getContent(), charset);
-						 	} catch (ParserConfigurationException ex) {
-						 			throw new IllegalStateException(ex);
-						 	} catch (SAXException ex) {
-						 		throw new ClientProtocolException("Malformed XML document", ex);
-						 	}
-						 }
-						 });
-
-		}
-
 }
