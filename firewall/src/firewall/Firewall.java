@@ -9,6 +9,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -57,25 +58,29 @@ public class Firewall {
         private static final String LOGIN="Login";
         private static final String PACKETFILTER="Packet Filter";
         
-        static HashMap<String,String> PacketFilterInputsAdd=new HashMap<String,String>();
-        static HashMap<String,String> LoginInputsAdd=new HashMap<String,String>();
-        
+        HashMap<String,String> PacketFilterInputsAdd=new HashMap<String,String>();
+        HashMap<String,String> PacketFilterInputsChange=new HashMap<String,String>();
+        HashMap<String,String> PacketFilterInputsDelete=new HashMap<String,String>();
+        HashMap<String,String> LoginInputsAdd=new HashMap<String,String>();
+        LinkedList<Page> PacketFilterActionsQueue=new LinkedList<Page>();
 		
     //    private static final name="pass" value="drop" />
-        private static URLOptions url;
         String errormessage="";
         String title="";        
     
 	    private Document cachedPage;
 	    
 		// TODO Auto-generated method stub
-		public static void main(String[] args) throws Exception {
-			Firewall firewall=new Firewall();
-			url=new URLOptions();
-			url.setHost(HOST);
-			url.setData(deviceCode);
-			
-			
+		public static void main(String[] args) {
+			try{
+				new Firewall();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+		}
+
+
+		public Firewall ()  throws Exception{
 			
 			//String urltogo=PacketFilterUrl;
 			//PacketFilterInputsAdd.put("nonce","");
@@ -86,9 +91,13 @@ public class Firewall {
 			PacketFilterInputsAdd.put("sourceport","");
 			PacketFilterInputsAdd.put("destport","");
 			PacketFilterInputsAdd.put("proto","udp");
-			PacketFilterInputsAdd.put("Change","Change");
 			
-			LoginInputsAdd.put("pass",deviceCode);
+			
+			LoginInputsAdd.put("password",deviceCode);
+			
+			PacketFilterPageDelete PacketFilterPageDelete=new PacketFilterPageDelete(HOST+PacketFilterUrl, PacketFilterInputsAdd);
+			PacketFilterActionsQueue.add(PacketFilterPageDelete);
+			
 			/*
 			Elements els=doc.select("input");
 			for (Element el: els){
@@ -96,33 +105,23 @@ public class Firewall {
 				System.out.println(el.attr("name")+" : "+el.attr("value"));
 			}
 			*/
-			
-			while (firewall.errormessage.length()==0){
-			
-			switch(firewall.title){
-			case LOGIN:
-				firewall.execute(url.getHost()+LoginUrl, LoginInputsAdd);
-				
-				
-				break;
-			case PACKETFILTER:
-				firewall.execute(url.getHost()+PacketFilterUrl, PacketFilterInputsAdd);
 
-				//System.out.print(doc.html().toString());
-				break;
-			default: firewall.execute(url.getHost()+PacketFilterUrl, PacketFilterInputsAdd);
- 
+			while(!PacketFilterActionsQueue.isEmpty()){
+				cachedPage=PacketFilterActionsQueue.pop()
+				.run(this);
 			}
-			}
-
 	    }
 		
-		private Document execute(String urltogo, HashMap<String,String> options) throws IOException{
+		public Document execute(String urltogo, HashMap<String,String> options) throws IOException{
 			if (null!=cachedPage){
 				
-			String nonce=cachedPage.select("input[name*=nonce]").attr("value");
-			options.put("nonce",nonce);
+				String nonce=cachedPage.select("input[name*=nonce]").attr("value");
+				options.put("nonce",nonce);
 			}
+			
+			System.out.println(urltogo);
+			System.out.println(options.toString());
+			
 			Document doc=Jsoup.connect(urltogo)
 			.data(options)
 			.post();
@@ -154,15 +153,58 @@ public class Firewall {
 			}
 
 			
-			String errormessage=doc.select("div#error-message-text").toString();
-			System.out.println(errormessage);
+						
+			//System.out.print(doc.html().toString());
 			
-			System.out.print(doc.html().toString());
-			try{
-			errormessage=cachedPage.select("div#error-message-text").toString();
-			}catch(Exception e){ System.out.print("errormessage doesn't exists"+e.getStackTrace().toString());}
+			title=doc.select("title").text();
 			
-			title=cachedPage.select("title").text();
+			switch(title){
+				
+			case LOGIN:PacketFilterActionsQueue.addFirst(new LoginPage(HOST+LoginUrl, LoginInputsAdd));
+				break;
+			case PACKETFILTER: 
+				errormessage=doc.select("div#error-message-text").text();
+				System.out.println(errormessage);
+				if (errormessage.length()==0)
+				{if (rules.isEmpty()){
+					
+					PacketFilterActionsQueue.addFirst(new PacketFilterPageAdd(HOST+PacketFilterUrl, PacketFilterInputsAdd));
+				}else{
+					if (PacketFilterActionsQueue.isEmpty()){
+						String str="";
+						HashMap<String,String> temp=new HashMap<String,String>();
+						for (Element el: rules){
+							//int i1=0;
+							Elements td=el.select("td");
+							if (!td.isEmpty()){
+							for (Element e:td){
+								//++i1;
+								if (e.select("input").hasAttr("type")){
+									str=e.select("input").attr("name").toString();
+								}else{
+									str=e.html().toString();
+								}
+								
+
+								
+							 if (str.contains("Remove")){
+								 temp.put(str,"Delete");
+								 }
+							}
+							 
+							 
+						
+							PacketFilterActionsQueue.add(new PacketFilterPageDelete(HOST+PacketFilterUrl,temp));
+							break;
+						}
+							}
+					}
+						
+				}
+					
+				}
+					break;
+			}
 			
 			cachedPage=doc;
 			return doc;
