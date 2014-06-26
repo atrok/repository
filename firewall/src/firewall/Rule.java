@@ -16,6 +16,15 @@ public class Rule {
 	private int i;
 
 	public Rule() {
+		
+		setAction("")
+		.setDestIP("")
+		.setDestPort("")
+		.setProt("")
+		.setSourceIP("")
+		.setSourcePort("");
+		
+		
 	}
 
 	public Rule setAction(String str) {
@@ -78,34 +87,38 @@ public class Rule {
 		return DestPort;
 	}
 
-	public void add(String str) {
+	public void add(String key,String str) {
+		
 		if (str.length()!=0){
-		++i;
-		switch (i) {
+		
+		switch (key) {
 
-		case 1:
+		case "Action":
 			setAction(str);
 			break;
-		case 2:
+		case "Source IP":
 			setSourceIP(str);
 			break;
-		case 3:
+		case "Dest IP":
 			setDestIP(str);
 			break;
-		case 4:
+		case "Prot":
+			setProt(str);
+		case "Source Port":
 			setSourcePort(str);
 			break;
-		case 5:
+		case "Dest Port":
 			setDestPort(str);
 			break;
-		case 6:
+		case "Edit":
 			setEdit(str);
 			break;
-		case 7:
+		case "Delete":
 			setRemove(str);
 		default:
 			break;
 		}
+		
 		}
 
 	}
@@ -138,13 +151,32 @@ public class Rule {
 	}
 	
 	public String toString() {
-		return Action + " " + SourceIP + " " + DestIP + " " + Prot + " "
-				+ SourcePort + " " + DestPort+" "+Edit+" "+Remove;
+		
+		return map.toString();
 	}
 	
 	public HashMap<String,String> getMap(){
 		return map;
 		
 	}
-
+	
+	public void addNewFieldToRule(String key,String value){
+		map.put(key, value);
+	}
+	
+	public String getValuebyKey(String key){
+		return map.get(key);
+	}
+	
+	public void putAll(HashMap<String,String> m){
+		map.putAll(m);
+	}
+	
+	public boolean isEmpty(){
+		
+		for (String str: map.values())
+			if (str.length()!=0)
+			return false;
+		return true;
+	}
 }
