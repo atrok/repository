@@ -13,6 +13,7 @@ public class PageFabric {
 		return pf;
 	}
 	
+
 	public Page getPage(String str){
 		
 		switch (str){

@@ -104,9 +104,8 @@ public class Firewall {
 	private boolean ALLOW = true;
 	public static final String deviceCode = "3287024592";
 
-	public static final String Login= "Login";
+	public static final String Login = "Login";
 	public static final String Packetfilter = "Packet Filter";
-
 
 	HashMap<String, String> LoginInputsAdd = new HashMap<String, String>();
 	LinkedList<Page> PacketFilterActionsQueue = new LinkedList<Page>();
@@ -121,6 +120,8 @@ public class Firewall {
 
 	// TODO Auto-generated method stub
 	public static void main(String[] args) {
+		
+		
 		try {
 			new Firewall();
 		} catch (Exception e) {
@@ -133,16 +134,6 @@ public class Firewall {
 		// String urltogo=PacketFilterUrl;
 		// PacketFilterInputsAdd.put("nonce","");
 
-		LinkedList<Rule> rules = new LinkedList<Rule>();
-		rules.add(new Rule().setAction("drop")
-				.setSourceIP("0.0.0.0-255.255.255.255")
-				.setDestIP("192.168.1.70").setProt("udp"));
-		rules.add(new Rule().setAction("drop")
-				.setSourceIP("0.0.0.0-255.255.255.255")
-				.setDestIP("192.168.1.70").setProt("tcp"));
-
-		LoginInputsAdd.put("password", deviceCode);
-
 		// PacketFilterActionsQueue.add(new
 		// PacketFilterPageDefault(PacketFilterUrl));// first we retrieve page
 		// content for value of nonce to be used in consequent requests
@@ -150,8 +141,14 @@ public class Firewall {
 		// needed
 
 		PacketFilterActionsQueue.add(new PacketFilterPageDefault());
-		PacketFilterActionsQueue.add(new PacketFilterPageAdd(Title.PacketFilterUrl,
-				new Rule().setAction("drop")
+
+		PacketFilterActionsQueue.add(new PacketFilterPageDelete(
+				Title.PacketFilterUrl));
+
+		PacketFilterActionsQueue.add(new WaitPage(3000));
+		
+		PacketFilterActionsQueue.add(new PacketFilterPageAdd(
+				Title.PacketFilterUrl, new Rule().setAction("drop")
 						.setSourceIP("0.0.0.0-255.255.255.255")
 						.setDestIP("192.168.1.70").setProt("udp"))); // add
 																		// rules
@@ -159,33 +156,46 @@ public class Firewall {
 																		// in
 																		// LinkedList<Rule>
 																		// rules
-		PacketFilterActionsQueue.add(new PacketFilterPageAdd(Title.PacketFilterUrl,
-				new Rule().setAction("drop")
-				.setSourceIP("0.0.0.0-255.255.255.255")
-				.setDestIP("192.168.1.70").setProt("tcp")));
-		
-		PacketFilterActionsQueue.add(new PacketFilterPageDelete(Title.PacketFilterUrl));
-		
+		PacketFilterActionsQueue.add(new PacketFilterPageAdd(
+				Title.PacketFilterUrl, new Rule().setAction("drop")
+						.setSourceIP("0.0.0.0-255.255.255.255")
+						.setDestIP("192.168.1.70").setProt("tcp")));
 		/*
 		 * run through all tasks in TaskQueue
 		 */
-		PageFabric pf=PageFabric.getInstance();
-		String title="";
-		while (!PacketFilterActionsQueue.isEmpty()) {
-			Page p=PacketFilterActionsQueue.getFirst();
-			
-			Page result=p.run();
-			if (!p.getTitle().equals(result.getTitle())&&result.getTitle().equals(Title.LOGIN))
-					PacketFilterActionsQueue.addFirst(pf.getPage(result.getTitle()));
-			if ((p instanceof PacketFilterPageDelete) && (!result.isEmptyExistingRulesMap()))
-					PacketFilterActionsQueue.addFirst(pf.getPage("delete"));
-			else
-				PacketFilterActionsQueue.remove();
 
-		}
+		new Thread(new Runnable() {
+			PageFabric pf = PageFabric.getInstance();
+			String title = "";
+
+			public void run() {
+				while (!PacketFilterActionsQueue.isEmpty()) {
+					Page p = PacketFilterActionsQueue.remove();
+
+					try {
+						Page result = p.run();
+
+						if (!p.getTitle().equals(result.getTitle())
+								&& result.getTitle().equals(Title.LOGIN)) {
+							PacketFilterActionsQueue.addFirst(p);
+							PacketFilterActionsQueue.addFirst(result);
+						}
+						if ((p instanceof PacketFilterPageDelete)
+								&& (!result.isEmptyExistingRulesMap())) {
+							PacketFilterActionsQueue.addFirst(p);
+							PacketFilterActionsQueue.addFirst(pf
+									.getPage("delete"));
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				
+				}
+
+			}
+		}).start();
+		
+		
 	}
-
-
-
 
 }
