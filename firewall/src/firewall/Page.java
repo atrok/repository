@@ -16,6 +16,22 @@ import org.jsoup.select.Elements;
 import static firewall.Title.*;
 
 public abstract class Page {
+	/*
+	 * every http request is represented by Page object which consists of 
+	 * url
+	 * options of corresponding POST request
+	 * options are kept in Rule object and are collected under rulesMap List
+	 * the design is to have 1 Rule per Page object. It makes sense since Rule represents options to be passed with POST request
+	 * that means every new http request should have its own options ie Rule
+	 * 
+	 * So next Page classes represent different http requests to service which url we pass along with Page object
+	 * we need to have different Classes for every http request as each bears specific purpose and has its own set of specific options 
+	 * Names of classes speak for themselves.
+	 * 
+	 * Page object is abstract class with template method run() common for all inherited classes but WaitPage
+	 * WaitPage is needed to set a delay between execution of Pages in PageQueue
+	 * 
+	 */
 	protected HashMap<String, String> options = new HashMap<String, String>();
 	protected String url;
 
@@ -152,7 +168,7 @@ public abstract class Page {
 
 	abstract void updateOptions();
 
-	abstract void updateRules();
+
 
 }
 
@@ -160,7 +176,7 @@ class LoginPage extends Page {
 
 	public LoginPage(String url) {
 		super(url);
-		// TODO Auto-generated constructor stub
+		 
 		title = Title.LOGIN;
 	}
 
@@ -172,8 +188,6 @@ class LoginPage extends Page {
 
 	};
 
-	void updateRules() {
-	}
 
 }
 
@@ -183,13 +197,13 @@ class PacketFilterPageAdd extends Page {
 
 	public PacketFilterPageAdd(String url) {
 		super(url);
-		// TODO Auto-generated constructor stub
+		 
 		title = Title.PACKETFILTER;
 	}
 
 	/*
 	 * public PacketFilterPageAdd(String url, LinkedList<Rule> rules) {
-	 * super(url); this.rules = rules; // TODO Auto-generated constructor stub
+	 * super(url); this.rules = rules;  
 	 * 
 	 * }
 	 */
@@ -199,13 +213,13 @@ class PacketFilterPageAdd extends Page {
 	public PacketFilterPageAdd(String url, Rule rule) {
 		super(url);
 		this.rules.add(rule);
-		// TODO Auto-generated constructor stub
+		 
 		title = Title.PACKETFILTER;
 	}
 
 	@Override
 	void updateOptions() {
-		// TODO Auto-generated method stub
+		//  
 		// options.put("Add", "Add");
 		for (Rule r : rules) {
 			r.addNewFieldToRule("Add", "Add");
@@ -217,10 +231,6 @@ class PacketFilterPageAdd extends Page {
 		this.rulesMap = rules;
 	}
 
-	void updateRules() {
-
-	}
-
 }
 
 class PacketFilterPageDelete extends Page {
@@ -229,20 +239,20 @@ class PacketFilterPageDelete extends Page {
 
 	public PacketFilterPageDelete(String url) {
 		super(url);
-		// TODO Auto-generated constructor stub
+		 
 		title = Title.PACKETFILTER;
 	}
 
 	public PacketFilterPageDelete(String url, String destip) {
 		super(url);
-		// TODO Auto-generated constructor stub
+		 
 		title = Title.PACKETFILTER;
 		this.destip = destip;
 	}
 
 	@Override
 	void updateOptions() {
-		// TODO Auto-generated method stub
+		//  
 
 		if (!existingRulesMap.isEmpty()) {
 			for (Rule r : existingRulesMap) {
@@ -253,7 +263,7 @@ class PacketFilterPageDelete extends Page {
 				r.dropEdit();
 System.out.println(this.getClass().toString()+" destip:"+destip+" r.getDestIP()"+r.getDestIP());
 
-				if (null != destip) {// delete those rules which destip is set in original Rule
+				if (null != destip) {// delete those rules which destip matches ip of rules presented on the page  
 									
 					if (destip.equals(r.getDestIP()))
 						this.rulesMap.add(r);
@@ -269,23 +279,37 @@ System.out.println(this.getClass().toString()+" destip:"+destip+" r.getDestIP()"
 		}
 
 	}
-
-	void updateRules() {
-
+	/*
+	 * (non-Javadoc)
+	 * @see firewall.Page#isEmptyExistingRulesMap()
+	 * we need to override it to add ability to delete specific rules only 
+	 * for that we need to check that among existing rules there is no rules having destip we target to delete
+	 */
+	@Override
+	public boolean isEmptyExistingRulesMap() {
+		if (null!=destip){// if we need to delete specific rules only
+			for (Rule r:existingRulesMap)
+				if (r.getDestIP().equals(destip))
+				return false;
+			return true;
+		}
+		// in case we delete all rules we check if there is any content in the list or not
+		return existingRulesMap.isEmpty();
 	}
+
 }
 
 class PacketFilterPageChange extends Page {
 
 	public PacketFilterPageChange(String url) {
 		super(url);
-		// TODO Auto-generated constructor stub
+		 
 		title = Title.PACKETFILTER;
 	}
 
 	@Override
 	void updateOptions() {
-		// TODO Auto-generated method stub
+		//  
 		Rule r = new Rule();
 		r.addNewFieldToRule("enfilter", "on");
 		r.addNewFieldToRule("Change", "Change");
@@ -295,36 +319,31 @@ class PacketFilterPageChange extends Page {
 		this.rulesMap.add(r);
 	}
 
-	void updateRules() {
-
-	}
 }
 
 class PacketFilterPageDefault extends Page {
 
 	public PacketFilterPageDefault(String url) {
 		super(url);
-		// TODO Auto-generated constructor stub
+		 
 		title = Title.PACKETFILTER;
 	}
 
 	public PacketFilterPageDefault() {
 
 		super(Title.PacketFilterUrl);
-		// TODO Auto-generated constructor stub
+		 
 		title = Title.PACKETFILTER;
 	}
 
 	@Override
 	void updateOptions() {
-		// TODO Auto-generated method stub
+		//  
 		Rule r = new Rule();
 		r.addNewFieldToRule("empty", "empty");
 		this.rulesMap.add(r);
 	}
 
-	void updateRules() {
-	}
 }
 
 class WaitPage extends Page {
@@ -333,36 +352,45 @@ class WaitPage extends Page {
 
 	public WaitPage(String url) {
 		super(url);
-		// TODO Auto-generated constructor stub
+		 
 		title = Title.WAITPAGE;
 	}
 
+	/*
+	 * WaitPage is needed to set a delay between execution of Pages in PageQueue 
+	 * it's a simple implementation of scheduler
+	 */
+	
 	public WaitPage() {
 
 		super(Title.PacketFilterUrl);
-		// TODO Auto-generated constructor stub
+		 
 		title = Title.WAITPAGE;
 	}
 
 	public WaitPage(int timeout) {
 
 		super(Title.PacketFilterUrl);
-		// TODO Auto-generated constructor stub
+		 
 		title = Title.WAITPAGE;
-		this.timeout = timeout;
+		this.timeout = timeout; //TODO need to implement timeout formatting, ie ability to pass timeout in human readable format
+								// ie WaitPage('2h') or WaitPage('2min') WaitPage('2sec')
+								// implement time ranges since.. through..
 	}
 
 	@Override
 	void updateOptions() {
-		// TODO Auto-generated method stub
+		//  
 		// Rule r = new Rule();
 		// r.addNewFieldToRule("empty", "empty");
 		// this.rulesMap.add(r);
 	}
 
-	void updateRules() {
-	}
-
+/* 
+ * (non-Javadoc)
+ * @see firewall.Page#run()
+ * we override run() method since we don't need to send any http requests but just wait specified amount of time before next request to be sent
+ */
 	public Page run() {
 		int t = 1000;
 		while (timeout >= 0) {
@@ -372,7 +400,6 @@ class WaitPage extends Page {
 				timeout = timeout - t;
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}

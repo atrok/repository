@@ -119,47 +119,12 @@ public class Firewall {
 	private Document cachedPage;
 
 	// TODO Auto-generated method stub
-	public static void main(String[] args) {
-		
-		
-		try {
-			new Firewall();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 
-	public Firewall() throws Exception {
 
-		// String urltogo=PacketFilterUrl;
-		// PacketFilterInputsAdd.put("nonce","");
+	public Firewall(LinkedList<Page> Queue) throws Exception {
 
-		// PacketFilterActionsQueue.add(new
-		// PacketFilterPageDefault(PacketFilterUrl));// first we retrieve page
-		// content for value of nonce to be used in consequent requests
-		// PacketFilterActionsQueue.add(new LoginPage(LoginUrl)); // login if
-		// needed
+		PacketFilterActionsQueue=Queue;
 
-		PacketFilterActionsQueue.add(new PacketFilterPageDefault());
-
-		PacketFilterActionsQueue.add(new PacketFilterPageDelete(
-				Title.PacketFilterUrl));
-
-		PacketFilterActionsQueue.add(new WaitPage(3000));
-		
-		PacketFilterActionsQueue.add(new PacketFilterPageAdd(
-				Title.PacketFilterUrl, new Rule().setAction("drop")
-						.setSourceIP("0.0.0.0-255.255.255.255")
-						.setDestIP("192.168.1.70").setProt("udp"))); // add
-																		// rules
-																		// specified
-																		// in
-																		// LinkedList<Rule>
-																		// rules
-		PacketFilterActionsQueue.add(new PacketFilterPageAdd(
-				Title.PacketFilterUrl, new Rule().setAction("drop")
-						.setSourceIP("0.0.0.0-255.255.255.255")
-						.setDestIP("192.168.1.70").setProt("tcp")));
 		/*
 		 * run through all tasks in TaskQueue
 		 */
