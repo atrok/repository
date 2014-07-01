@@ -237,6 +237,10 @@ class PacketFilterPageDelete extends Page {
 
 	private String destip = null;
 
+	public String getDestip() {
+		return destip;
+	}
+
 	public PacketFilterPageDelete(String url) {
 		super(url);
 		 

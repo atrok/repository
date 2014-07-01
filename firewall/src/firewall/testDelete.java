@@ -6,19 +6,22 @@ import java.util.LinkedList;
 
 import org.junit.Test;
 
-public class TestFirewall {
+public class testDelete {
 
 	@Test
-	public void test() {
+	public void testDelete(){
+		
 		LinkedList<Page> PacketFilterActionsQueue = new LinkedList<Page>();
 
 		PacketFilterActionsQueue.add(new PacketFilterPageDefault());
+		
+		PacketFilterActionsQueue.add(new WaitPage(1000));
 
 		PacketFilterActionsQueue.add(new PacketFilterPageDelete(
-				Title.PacketFilterUrl,"192.168.1.69"));
-
-		PacketFilterActionsQueue.add(new WaitPage(3000));
-
+				Title.PacketFilterUrl));
+		
+		PacketFilterActionsQueue.add(new WaitPage(1000));
+		
 		PacketFilterActionsQueue.add(new PacketFilterPageAdd(
 				Title.PacketFilterUrl, new Rule().setAction("drop")
 						.setSourceIP("0.0.0.0-255.255.255.255")
@@ -28,19 +31,28 @@ public class TestFirewall {
 																		// in
 																		// LinkedList<Rule>
 																		// rules
+		PacketFilterActionsQueue.add(new WaitPage(1000));
+		
 		PacketFilterActionsQueue.add(new PacketFilterPageAdd(
 				Title.PacketFilterUrl, new Rule().setAction("drop")
 						.setSourceIP("0.0.0.0-255.255.255.255")
-						.setDestIP("192.168.1.70").setProt("tcp")));
+						.setDestIP("192.168.1.69").setProt("tcp")));
+		
+		PacketFilterActionsQueue.add(new WaitPage(1000));
+		
+		PacketFilterActionsQueue.add(new PacketFilterPageDelete(
+				Title.PacketFilterUrl,"192.168.1.69"));
 
 		try {
 			new Firewall(PacketFilterActionsQueue);
+			
 			
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
+		
 	}
-	
+
 
 }

@@ -101,21 +101,13 @@ public class Firewall {
 	 */
 	// global constants and variables
 
-	private boolean ALLOW = true;
+
 	public static final String deviceCode = "3287024592";
-
-	public static final String Login = "Login";
-	public static final String Packetfilter = "Packet Filter";
-
-	HashMap<String, String> LoginInputsAdd = new HashMap<String, String>();
-	LinkedList<Page> PacketFilterActionsQueue = new LinkedList<Page>();
+	private LinkedList<Page> PacketFilterActionsQueue = new LinkedList<Page>();
 
 	// private static final name="pass" value="drop" />
-	String errormessage = "";
-	String title = "";
-
-	String destip = "192.168.1.70";
-
+	private String errormessage = "";
+	private String title = "";
 	private Document cachedPage;
 
 	// TODO Auto-generated method stub
@@ -129,7 +121,7 @@ public class Firewall {
 		 * run through all tasks in TaskQueue
 		 */
 
-		new Thread(new Runnable() {
+		Thread p=new Thread(new Runnable() {
 			PageFabric pf = PageFabric.getInstance();
 			String title = "";
 
@@ -146,10 +138,10 @@ public class Firewall {
 							PacketFilterActionsQueue.addFirst(result);
 						}
 						if ((p instanceof PacketFilterPageDelete)
-								&& (!result.isEmptyExistingRulesMap())) {
+								&& (!((PacketFilterPageDelete) p).isEmptyExistingRulesMap())) {
 							PacketFilterActionsQueue.addFirst(p);
 							PacketFilterActionsQueue.addFirst(pf
-									.getPage("delete"));
+									.getPage("delete",((PacketFilterPageDelete) p).getDestip()));
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -158,9 +150,11 @@ public class Firewall {
 				}
 
 			}
-		}).start();
+		});
+		p.start();
 		
-		
+		p.join();
 	}
+	
 
 }

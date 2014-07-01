@@ -14,13 +14,16 @@ public class PageFabric {
 	}
 	
 
-	public Page getPage(String str){
+	public Page getPage(String... str){
 		
-		switch (str){
+		switch (str[0]){
 		case Title.LOGIN: return new LoginPage(Title.LoginUrl);
 		case Title.PACKETFILTER: return new PacketFilterPageDefault(Title.PacketFilterUrl);
-		case "delete": return new PacketFilterPageDelete(Title.PacketFilterUrl);
-		default: return null;
+		case "delete": 
+			String destip=str[1];
+			return new PacketFilterPageDelete(Title.PacketFilterUrl,destip);
+		default: 
+			return null;
 		}
 	}
 
