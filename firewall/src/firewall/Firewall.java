@@ -1,44 +1,13 @@
 package firewall;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.apache.http.*;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpResponseException;
-import org.apache.http.client.ResponseHandler;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.fluent.Request;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.util.EntityUtils;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import org.xml.sax.SAXException;
+
+import PageProcessor.PacketFilterPageDelete;
+import PageProcessor.PageProcessor;
+import PageProcessor.PageProcessorFabric;
 
 public class Firewall {
 
@@ -103,17 +72,14 @@ public class Firewall {
 
 
 	public static final String deviceCode = "3287024592";
-	private LinkedList<Page> PacketFilterActionsQueue = new LinkedList<Page>();
+	private LinkedList<PageProcessor> PacketFilterActionsQueue = new LinkedList<PageProcessor>();
 
-	// private static final name="pass" value="drop" />
-	private String errormessage = "";
-	private String title = "";
-	private Document cachedPage;
+	
 
 	// TODO Auto-generated method stub
 
 
-	public Firewall(LinkedList<Page> Queue) throws Exception {
+	public Firewall(LinkedList<PageProcessor> Queue) throws Exception {
 
 		PacketFilterActionsQueue=Queue;
 
@@ -122,15 +88,13 @@ public class Firewall {
 		 */
 
 		Thread p=new Thread(new Runnable() {
-			PageFabric pf = PageFabric.getInstance();
-			String title = "";
-
+			PageProcessorFabric pf = PageProcessorFabric.getInstance();
 			public void run() {
 				while (!PacketFilterActionsQueue.isEmpty()) {
-					Page p = PacketFilterActionsQueue.remove();
+					PageProcessor p = PacketFilterActionsQueue.remove();
 
 					try {
-						Page result = p.run();
+						PageProcessor result = p.run();
 
 						if (!p.getTitle().equals(result.getTitle())
 								&& result.getTitle().equals(Title.LOGIN)) {
@@ -140,8 +104,7 @@ public class Firewall {
 						if ((p instanceof PacketFilterPageDelete)
 								&& (!((PacketFilterPageDelete) p).isEmptyExistingRulesMap())) {
 							PacketFilterActionsQueue.addFirst(p);
-							PacketFilterActionsQueue.addFirst(pf
-									.getPage("delete",((PacketFilterPageDelete) p).getDestip()));
+							PacketFilterActionsQueue.addFirst(pf.getPageProcessor("delete",((PacketFilterPageDelete) p).getDestip()));
 						}
 					} catch (IOException e) {
 						e.printStackTrace();
