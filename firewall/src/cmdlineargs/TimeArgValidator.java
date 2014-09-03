@@ -12,10 +12,13 @@ public class TimeArgValidator implements IParameterValidator {
 	public void validate(String name, String value) throws ParameterException {
 		// TODO Auto-generated method stub
 		List<String> timeValues=Arrays.asList("s","m","h");
-		String[] n = value.split("%");
+		String s=String.valueOf(value.charAt(value.length()-1));
+	
+		String[] n = value.split(s);
+		
 		try{
     	Integer.parseInt(n[0]);
-    	if (!timeValues.contains(n[1]))
+    	if (!timeValues.contains(s))
 			throw new ParameterException("-time option value is incorrect:"+value+", expected %s|%m|%h");
 		}catch (NumberFormatException e){
 			throw new ParameterException("-time option value is incorrect:"+e);
