@@ -25,40 +25,11 @@ public class testDelete {
 		PacketFilterActionsQueue.add(new WaitPageProcessor(1000));
 
 		PacketFilterActionsQueue.add(new PacketFilterPageDelete(
-				Title.PacketFilterUrl));
+				Title.PacketFilterUrl)); // this deletes all rules on the page
 		
-		PacketFilterActionsQueue.add(new WaitPageProcessor(1000));
 		
-		PacketFilterActionsQueue.add(new PacketFilterPageAdd(
-				Title.PacketFilterUrl, new Rule().setAction("drop")
-						.setSourceIP("0.0.0.0-255.255.255.255")
-						.setDestIP("192.168.1.70").setProt("udp"))); // add
-																		// rules
-																		// specified
-																		// in
-																		// LinkedList<Rule>
-																		// rules
-		PacketFilterActionsQueue.add(new PacketFilterPageAdd(
-				Title.PacketFilterUrl, new Rule().setAction("drop")
-						.setSourceIP("0.0.0.0-255.255.255.255")
-						.setDestIP("192.168.1.70").setProt("tcp"))); // add
-																		// rules
-																		// specified
-																		// in
-																		// LinkedList<Rule>
-																		// rules
-
-		PacketFilterActionsQueue.add(new WaitPageProcessor(1000));
-		
-		PacketFilterActionsQueue.add(new PacketFilterPageAdd(
-				Title.PacketFilterUrl, new Rule().setAction("drop")
-						.setSourceIP("0.0.0.0-255.255.255.255")
-						.setDestIP("192.168.1.69").setProt("tcp")));
-		
-		PacketFilterActionsQueue.add(new WaitPageProcessor(1000));
-		
-		PacketFilterActionsQueue.add(new PacketFilterPageDelete(
-				Title.PacketFilterUrl,"192.168.1.69"));
+		PacketFilterActionsQueue.add(new PacketFilterPageDelete( 
+				Title.PacketFilterUrl,"192.168.1.69")); // this deletes only rules that matches to ipaddress
 
 		try {
 			new Firewall(PacketFilterActionsQueue);

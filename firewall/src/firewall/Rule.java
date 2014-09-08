@@ -172,6 +172,7 @@ public class Rule {
 		map.putAll(m);
 	}
 	
+	
 	public boolean isEmpty(){
 		
 		for (String str: map.values())

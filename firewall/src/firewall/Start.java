@@ -14,16 +14,18 @@ import com.beust.jcommander.ParameterException;
 public class Start {
 
 
-
-	  
+	
+	private static CmdLineParameters params = CmdLineParameters.getInstance();
+	
 	public static void main(String[] args) {
 		
 		//String args2[]={"-action","drop","-destip","192.168.1.70","-time"," 10%s"};
 		
-		CmdLineParameters params = new CmdLineParameters();
+		
 	    JCommander cmd = new JCommander(params);
 	    try {
 	        cmd.parse(args);
+
 
 	    } catch (ParameterException ex) {
 	        System.out.println(ex.getMessage());
@@ -35,7 +37,7 @@ public class Start {
 		
 		
 
-
+/*
 		LinkedList<PageProcessor> PacketFilterActionsQueue = new LinkedList<PageProcessor>();
 
 		PacketFilterActionsQueue.add(new PacketFilterPageDefault());
@@ -58,6 +60,7 @@ public class Start {
 				Title.PacketFilterUrl, new Rule().setAction(params.getAction())
 						.setSourceIP("0.0.0.0-255.255.255.255")
 						.setDestIP(params.getDestip()).setProt("tcp")));
+*/
 		
 		try {
 			new Firewall(PacketFilterActionsQueue);
@@ -69,5 +72,4 @@ public class Start {
 		
 	}
 }
-//TODO write argument validators
 

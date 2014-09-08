@@ -40,16 +40,16 @@ System.out.println(this.getClass().toString()+" destip:"+destip+" r.getDestIP()"
 				if (null != destip) {// delete those rules which destip matches ip of rules presented on the PageProcessor  
 									
 					if (destip.equals(r.getDestIP()))
-						this.rulesMap.add(r);
+						PageProcessor.rulesMap.add(r);
 				} else { // in opposite case delete all rules on the page
-					this.rulesMap.add(r);
+					PageProcessor.rulesMap.add(r);
 
 				}
 				
 				
 			}
 		} else {//TODO this is may not be required because of code refactoring in Page.run()
-			this.rulesMap.add(new Rule());
+			PageProcessor.rulesMap.add(new Rule());
 		}
 
 	}
