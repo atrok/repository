@@ -1,7 +1,6 @@
-package firewall;
+package PageProcessor;
 
 import java.io.IOException;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,23 +12,24 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import firewall.Rule;
 import static firewall.Title.*;
 
-public abstract class Page {
+public abstract class PageProcessor {
 	/*
-	 * every http request is represented by Page object which consists of 
+	 * every http request is represented by PageProcessor object which consists of 
 	 * url
 	 * options of corresponding POST request
 	 * options are kept in Rule object and are collected under rulesMap List
-	 * the design is to have 1 Rule per Page object. It makes sense since Rule represents options to be passed with POST request
+	 * the design is to have 1 Rule per PageProcessor object. It makes sense since Rule represents options to be passed with POST request
 	 * that means every new http request should have its own options ie Rule
 	 * 
-	 * So next Page classes represent different http requests to service which url we pass along with Page object
+	 * So next PageProcessor classes represent different http requests to service which url we pass along with PageProcessor object
 	 * we need to have different Classes for every http request as each bears specific purpose and has its own set of specific options 
 	 * Names of classes speak for themselves.
 	 * 
-	 * Page object is abstract class with template method run() common for all inherited classes but WaitPage
-	 * WaitPage is needed to set a delay between execution of Pages in PageQueue
+	 * PageProcessor object is abstract class with template method run() common for all inherited classes but WaitPage
+	 * WaitPageProcessor is needed to set a delay between execution of Pages in PageQueue
 	 * 
 	 */
 	protected HashMap<String, String> options = new HashMap<String, String>();
@@ -42,7 +42,7 @@ public abstract class Page {
 	protected String errormessage;
 	protected String title;
 
-	public Page(String url) {
+	public PageProcessor(String url) {
 		setUrl(url);
 		// rulesMap=new LinkedList<Rule>();
 		// if (rulesMap.size()==0)
@@ -66,7 +66,7 @@ public abstract class Page {
 		return options;
 	}
 
-	public Page run() throws IOException {
+	public PageProcessor run() throws IOException {
 		updateOptions();
 
 		// while (!rulesMap.isEmpty()) {
@@ -105,7 +105,7 @@ public abstract class Page {
 		existingRulesMap = getRules();
 
 		// }
-		return PageFabric.getInstance().getPage(action);
+		return PageProcessorFabric.getInstance().getPageProcessor(action);
 
 	}
 
@@ -170,70 +170,4 @@ public abstract class Page {
 
 
 
-}
-
-
-
-
-
-class WaitPage extends Page {
-
-	private int timeout = 1000;
-
-	public WaitPage(String url) {
-		super(url);
-		 
-		title = Title.WAITPAGE;
-	}
-
-	/*
-	 * WaitPage is needed to set a delay between execution of Pages in PageQueue 
-	 * it's a simple implementation of scheduler
-	 */
-	
-	public WaitPage() {
-
-		super(Title.PacketFilterUrl);
-		 
-		title = Title.WAITPAGE;
-	}
-
-	public WaitPage(int timeout) {
-
-		super(Title.PacketFilterUrl);
-		 
-		title = Title.WAITPAGE;
-		this.timeout = timeout; //TODO need to implement timeout formatting, ie ability to pass timeout in human readable format
-								// ie WaitPage('2h') or WaitPage('2min') WaitPage('2sec')
-								// implement time ranges since.. through..
-	}
-
-	@Override
-	void updateOptions() {
-		//  
-		// Rule r = new Rule();
-		// r.addNewFieldToRule("empty", "empty");
-		// this.rulesMap.add(r);
-	}
-
-/* 
- * (non-Javadoc)
- * @see firewall.Page#run()
- * we override run() method since we don't need to send any http requests but just wait specified amount of time before next request to be sent
- */
-	public Page run() {
-		int t = 1000;
-		while (timeout >= 0) {
-			try {
-				System.out.print("Wait is in progres .." + timeout / 1000
-						+ " sec to go\n");
-				timeout = timeout - t;
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}
-		return this;
-
-	}
 }

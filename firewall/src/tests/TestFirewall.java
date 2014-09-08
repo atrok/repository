@@ -1,4 +1,4 @@
-package firewall;
+package tests;
 
 import static org.junit.Assert.*;
 
@@ -6,18 +6,28 @@ import java.util.LinkedList;
 
 import org.junit.Test;
 
+import PageProcessor.PacketFilterPageAdd;
+import PageProcessor.PacketFilterPageDefault;
+import PageProcessor.PacketFilterPageDelete;
+import PageProcessor.PageProcessor;
+import PageProcessor.WaitPageProcessor;
+import firewall.Firewall;
+import firewall.Rule;
+import firewall.Title;
+
+
 public class TestFirewall {
 
 	@Test
 	public void test() {
-		LinkedList<Page> PacketFilterActionsQueue = new LinkedList<Page>();
+		LinkedList<PageProcessor> PacketFilterActionsQueue = new LinkedList<PageProcessor>();
 
 		PacketFilterActionsQueue.add(new PacketFilterPageDefault());
 
 		PacketFilterActionsQueue.add(new PacketFilterPageDelete(
-				Title.PacketFilterUrl,"192.168.1.69"));
+				Title.PacketFilterUrl,"192.168.1.70"));
 
-		PacketFilterActionsQueue.add(new WaitPage(3000));
+		PacketFilterActionsQueue.add(new WaitPageProcessor(3600000));
 
 		PacketFilterActionsQueue.add(new PacketFilterPageAdd(
 				Title.PacketFilterUrl, new Rule().setAction("drop")
