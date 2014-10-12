@@ -15,7 +15,7 @@ import org.jsoup.select.Elements;
 import firewall.Rule;
 import static firewall.Title.*;
 
-public abstract class PageProcessor {
+public abstract class PageProcessor{
 	/*
 	 * every http request is represented by PageProcessor object which consists of 
 	 * url
@@ -105,7 +105,7 @@ public abstract class PageProcessor {
 		existingRulesMap = getRules();
 
 		// }
-		return PageProcessorFabric.getInstance().getPageProcessor(action);
+		return PageProcessorFabric.getInstance().create(action);
 
 	}
 

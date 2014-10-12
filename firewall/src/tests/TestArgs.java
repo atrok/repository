@@ -17,6 +17,7 @@ import com.beust.jcommander.JCommander;
 import com.beust.jcommander.ParameterException;
 
 import firewall.Firewall;
+import firewall.RequestQueueFabric;
 import firewall.Rule;
 import firewall.Title;
 
@@ -24,7 +25,7 @@ public class TestArgs {
 
 	@Test
 	public void test() {
-		CmdLineParameters params = new CmdLineParameters();
+		CmdLineParameters params = CmdLineParameters.getInstance();
 	    JCommander cmd = new JCommander(params);
 	    String args[]={"-action","drop","-destip","192.168.1.70","-time"," 10s"};
 	    try {
@@ -40,10 +41,10 @@ public class TestArgs {
 		
 		
 
+	    RequestQueueFabric rq=new RequestQueueFabric();
+		LinkedList<PageProcessor> PacketFilterActionsQueue = (LinkedList<PageProcessor>)rq.getQueue();
 
-		LinkedList<PageProcessor> PacketFilterActionsQueue = new LinkedList<PageProcessor>();
-
-		PacketFilterActionsQueue.add(new PacketFilterPageDefault());
+		//PacketFilterActionsQueue.add(new PacketFilterPageDefault());
 /*
 		PacketFilterActionsQueue.add(new PacketFilterPageDelete(
 				Title.PacketFilterUrl));

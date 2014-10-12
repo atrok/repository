@@ -2,9 +2,11 @@ package firewall;
 
 import java.io.IOException;
 import java.util.LinkedList;
+import java.util.List;
 
 import org.jsoup.nodes.Document;
 
+import cmdlineargs.CmdLineParameters;
 import PageProcessor.PacketFilterPageDelete;
 import PageProcessor.PageProcessor;
 import PageProcessor.PageProcessorFabric;
@@ -74,14 +76,14 @@ public class Firewall {
 	public static final String deviceCode = "3287024592";
 	private LinkedList<PageProcessor> PacketFilterActionsQueue = new LinkedList<PageProcessor>();
 
-	
+	CmdLineParameters cmd=CmdLineParameters.getInstance();
 
 	// TODO Auto-generated method stub
 
 
-	public Firewall(LinkedList<PageProcessor> Queue) throws Exception {
+	public Firewall(List<PageProcessor> list) throws Exception {
 
-		PacketFilterActionsQueue=Queue;
+		PacketFilterActionsQueue=(LinkedList<PageProcessor>)list;
 
 		/*
 		 * run through all tasks in TaskQueue
@@ -104,7 +106,9 @@ public class Firewall {
 						if ((p instanceof PacketFilterPageDelete)
 								&& (!((PacketFilterPageDelete) p).isEmptyExistingRulesMap())) {
 							PacketFilterActionsQueue.addFirst(p);
-							PacketFilterActionsQueue.addFirst(pf.getPageProcessor("delete",((PacketFilterPageDelete) p).getDestip()));
+							
+							cmd.setDestip(((PacketFilterPageDelete) p).getDestip());
+							PacketFilterActionsQueue.addFirst(pf.create("delete"));
 						}
 					} catch (IOException e) {
 						e.printStackTrace();

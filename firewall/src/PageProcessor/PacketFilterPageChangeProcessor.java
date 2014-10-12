@@ -3,9 +3,9 @@ package PageProcessor;
 import firewall.Rule;
 import firewall.Title;
 
-public class PacketFilterPageChange extends PageProcessor {
+public class PacketFilterPageChangeProcessor extends PageProcessor {
 
-	public PacketFilterPageChange(String url) {
+	public PacketFilterPageChangeProcessor(String url) {
 		super(url);
 		 
 		title = Title.PACKETFILTER;
