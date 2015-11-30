@@ -12,13 +12,15 @@ public class LoginPageProcessor extends PageProcessor {
 		title = Title.LOGIN;
 	}
 
-	@SuppressWarnings("unused")
 	void updateOptions() {
 		Rule r = new Rule();
 		r.addNewFieldToRule("password", Firewall.deviceCode);
-		this.rulesMap.add(r);
-
-	};
-
-
+		//PageProcessor.rulesMap.add(r);
+		ruleToRun=r;
+	}
+	
+	public String toString(){
+		return this.getClass().toString()+"\n"+super.toString();
+		
+	}
 }

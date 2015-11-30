@@ -5,6 +5,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 import cmdlineargs.CmdLineParameters;
+import cmdlineargs.commands.Command;
 import PageProcessor.PacketFilterPageDefault;
 import PageProcessor.PacketFilterPageDelete;
 import PageProcessor.PageProcessor;
@@ -21,16 +22,24 @@ public class RequestQueueFabric {
 	 * we need it to obtain value of nonce variable used in every request to add/change/delete/login
 	 */
 
-	public RequestQueueFabric(){
+	public RequestQueueFabric(Command cmd){
+
 		PacketFilterActionsQueue.add(new PacketFilterPageDefault());
-		if (null!=params.getRules())
-			parse();
+
+		cmd.initPageProcessor();
+		while(cmd.getRulesSize()>=1){
+			PacketFilterActionsQueue.add(cmd.getNextPageProcessor());
+		}
+
+			//parse();
 	}
 	
 	public void parse(){
 		
+		/*
 		PacketFilterActionsQueue.add(new PacketFilterPageDelete( 
 				Title.PacketFilterUrl,params.getDestip()));
+		*/
 		
 		//PageProcessor[] p=PageProcessorFabric.getInstance().createFromCommandLineParameters();
 		Collections.addAll(PacketFilterActionsQueue, PageProcessorFabric.getInstance().createFromCommandLineParameters());

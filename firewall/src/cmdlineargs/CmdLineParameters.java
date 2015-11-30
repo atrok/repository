@@ -11,7 +11,7 @@ public class CmdLineParameters {
 	@Parameter(names = "-destip", description = "IP address to be added as firewall rule", validateWith = IPvalidator.class, required = true)
 	private String destip = null;
 
-	@Parameter(names = "-action", description = "Action to be applied to the packets (drop/pass). Firewall rule will affect TCP and UDP packets", validateWith = ActionValidator.class, required = true)
+	@Parameter(names = "-action", description = "Action to be requested to the packets (drop/pass/status). Firewall rule will affect TCP and UDP packets", validateWith = ActionValidator.class, required = true)
 	private String action = null;
 
 	@Parameter(names = "-proto", description = "Protocol of packets an action applies to (tcp/udp/both). If option is missed then both protocols are affected", validateWith = ProtoValidator.class)
@@ -27,7 +27,7 @@ public class CmdLineParameters {
 	// static //private Rule[] rule=null;
 	static CmdLineParameters cmd = new CmdLineParameters();
 
-	private CmdLineParameters() {
+	protected CmdLineParameters() {
 
 	};
 
@@ -68,17 +68,17 @@ public class CmdLineParameters {
 		if (null == protoArr)
 			setProto();
 
-		//if (null == rule) {
-
+		// if (null == rule) {
+		if (!action.equals("status")) {// we don't need Rules in case of status request - in opposite case it would delete all already set rules
 			Rule[] r = new Rule[protoArr.length];
 			for (int i = 0; i < protoArr.length; i++) {
 
 				r[i] = new Rule().setAction(action).setDestIP(destip)
 						.setProt(protoArr[i]);
-			//}
-			rule=r;
+			}
+			return rule = r;
 		}
-		return rule;
+		return null;
 	}
 
 	public void setProto() {

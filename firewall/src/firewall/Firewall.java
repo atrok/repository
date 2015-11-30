@@ -3,6 +3,11 @@ package firewall;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
 import org.jsoup.nodes.Document;
 
@@ -10,6 +15,7 @@ import cmdlineargs.CmdLineParameters;
 import PageProcessor.PacketFilterPageDelete;
 import PageProcessor.PageProcessor;
 import PageProcessor.PageProcessorFabric;
+import PageProcessor.PageResult;
 
 public class Firewall {
 
@@ -72,9 +78,14 @@ public class Firewall {
 	 */
 	// global constants and variables
 
-
+	public static final String RESPONSE_NOK="Another client has the SDB write lock";
+	
+	public static final Logger logger=Logger.getLogger(Firewall.class.getName());
+	
+	
 	public static final String deviceCode = "3287024592";
 	private LinkedList<PageProcessor> PacketFilterActionsQueue = new LinkedList<PageProcessor>();
+	public static PageResult result=null;
 
 	CmdLineParameters cmd=CmdLineParameters.getInstance();
 
@@ -89,38 +100,68 @@ public class Firewall {
 		 * run through all tasks in TaskQueue
 		 */
 
-		Thread p=new Thread(new Runnable() {
+		ExecutorService exec=Executors.newCachedThreadPool();
+		
+		Future<PageResult> res=exec.submit(new Callable<PageResult>() {
 			PageProcessorFabric pf = PageProcessorFabric.getInstance();
-			public void run() {
+			public PageResult call() {
+				PageProcessor result=null;
 				while (!PacketFilterActionsQueue.isEmpty()) {
+					
+					logger.info(String.format("--------- PacketFilterActionsQueue content\n[ %s ] --------------------",PacketFilterActionsQueue.toString() ));
+					
 					PageProcessor p = PacketFilterActionsQueue.remove();
 
 					try {
-						PageProcessor result = p.run();
+						result = p.run();
 
 						if (!p.getTitle().equals(result.getTitle())
 								&& result.getTitle().equals(Title.LOGIN)) {
 							PacketFilterActionsQueue.addFirst(p);
 							PacketFilterActionsQueue.addFirst(result);
+							logger.info(String.format("--------- adding PageProcessor to the queue again because of Login\n %s --------------------",p.toString() ));
 						}
+						
+						logger.info(String.format("--------- PageRequest %s returned with result %s",result.getClass().toString(),result.getErrormessage()));
+						if (Firewall.RESPONSE_NOK.equals(result.getErrormessage())){
+						logger.info(String.format("--------- adding PageProcessor to the queue again because of Response_NOK\n %s --------------------",p.toString() ));	
+							PacketFilterActionsQueue.addFirst(p);
+						}
+						
+						/*
+						 * we remove it because the population of Requests queue is delegated to RequestQueueFabric
+						 * originally we issued 1 pagedelete request, but if in resulting rules set there was a rule/rules to be deleted we added pagedelete request here
+						 * now RequestQueueFabric should populate Deleterequests in accordance with options provided in command line
+						 * 
 						if ((p instanceof PacketFilterPageDelete)
 								&& (!((PacketFilterPageDelete) p).isEmptyExistingRulesMap())) {
-							PacketFilterActionsQueue.addFirst(p);
+							//PacketFilterActionsQueue.addFirst(p);
 							
 							cmd.setDestip(((PacketFilterPageDelete) p).getDestip());
-							PacketFilterActionsQueue.addFirst(pf.create("delete"));
+							PacketFilterActionsQueue.addFirst(pf.create("drop"));
+							logger.info(String.format("--------- adding PageProcessor to the queue again because ((PacketFilterPageDelete) p).isEmptyExistingRulesMap() is not empty\n %s --------------------",p.toString() ));	
 						}
+						
+						*/
+						
+						
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
+					
+					
 				
 				}
-
+				return (null!=result)? new PageResult(result): null;
+				
 			}
 		});
-		p.start();
 		
-		p.join();
+		result=res.get();
+		
+//		p.start();
+		
+	//	p.join();
 	}
 	
 

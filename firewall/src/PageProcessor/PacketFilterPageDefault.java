@@ -23,7 +23,13 @@ public class PacketFilterPageDefault extends PageProcessor {
 		//  
 		Rule r = new Rule();
 		r.addNewFieldToRule("empty", "empty");
-		this.rulesMap.add(r);
+		//this.rulesMap.add(r);
+		ruleToRun=r;
+	}
+
+	public String toString(){
+		return this.getClass().toString()+"\n"+super.toString();
+		
 	}
 
 }

@@ -31,10 +31,10 @@ public class PageProcessorFabric {
 		case Title.PACKETFILTER:
 		case "default":
 			return new PacketFilterPageDefault(Title.PacketFilterUrl);
-		case "delete": 
+		case "drop":
 			String destip=cmd.getDestip();
 			return new PacketFilterPageDelete(Title.PacketFilterUrl,destip);
-		case "drop":
+
 		case "pass":
 			return new PacketFilterPageAdd(Title.PacketFilterUrl, rule.setSourceIP("0.0.0.0-255.255.255.255"));
 		default: 
@@ -43,7 +43,7 @@ public class PageProcessorFabric {
 	}
 	
 	public PageProcessor[] createFromCommandLineParameters(){
-		Rule[] r=cmd.getRules();
+		Rule[] r=cmd.getRules(); /// Rule is a list of fields and options that assembles POST request to remote server
 		int l =r.length;
 		PageProcessor[] p=new PageProcessor[l];
 		

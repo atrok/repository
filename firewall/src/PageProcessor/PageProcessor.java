@@ -6,6 +6,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -35,11 +37,19 @@ public abstract class PageProcessor{
 	protected HashMap<String, String> options = new HashMap<String, String>();
 	protected String url;
 
-	protected static Document cachedPage = null;
-	protected static LinkedList<Rule> rulesMap = new LinkedList<Rule>();
-	protected static LinkedList<Rule> existingRulesMap = new LinkedList<Rule>();
+	protected static final Logger logger=Logger.getLogger(PageProcessor.class.getName());
 
-	protected String errormessage;
+	protected static Document cachedPage = null;
+	protected static LinkedList<Rule> rulesMap = new LinkedList<Rule>();///??? why we need this?
+	protected static LinkedList<Rule> serverSideRulesMap = new LinkedList<Rule>();
+	protected Rule ruleToRun; //
+
+	protected static String errormessage;
+	
+	public String getErrormessage() {
+		return errormessage;
+	}
+
 	protected String title;
 
 	public PageProcessor(String url) {
@@ -70,43 +80,49 @@ public abstract class PageProcessor{
 		updateOptions();
 
 		// while (!rulesMap.isEmpty()) {
-		System.out.println(this.getClass().toString()
-				+ " entering Page.run() rulesMap:");
+		logger.info(this.getClass().getName()+ " entering Page.run()\n There is next Rule to:");
+		/*
+		 * we don't need it, there is one Rule object per Request, ruleToRun
+		 * 
 		if (!rulesMap.isEmpty()) {
-			System.out.println(rulesMap.toString());
+			logger.info(rulesMap.toString());
 
 			Rule r = rulesMap.remove();
-			if (null != r.getMap())
+			if (!r.isMapEmpty())
 				options.putAll(r.getMap());
 		}
-
+*/
+		//we create cached page when run PageDefault request, as result we obtain noonce value. That's why PageDefault should be first request in the queue
 		if (null != cachedPage) {
 
 			String nonce = cachedPage.select("input[name*=nonce]")
 					.attr("value");
 			options.put("nonce", nonce);
+			ruleToRun.add("nonce", nonce);
 		}
 
-		System.out.println("Request to be sent:" + url);
-		System.out.println("options to be sent:" + options.toString());
+		logger.info("Request to be sent:" + url);
+		logger.info("options to be sent:"+ruleToRun.toString());
 
-		cachedPage = Jsoup.connect(url).data(options).post();
+		cachedPage = Jsoup.connect(url)
+				.data(ruleToRun.getMap())
+				.post();
 
 		String action = cachedPage.select("form").attr("action");
-		System.out.println("Response gained (form value):" + action);
+		logger.info("Response gained (form value):" + action);
 
 		errormessage = cachedPage.select("div#error-message-text").text();
 
 		action = cachedPage.select("title").text();
 
-		System.out.println("Title of page: " + action + "\nError message:"
+		logger.info("Title of page: " + action + "\nError message:"
 				+ errormessage);
 
-		existingRulesMap = getRules();
+		serverSideRulesMap = getRules();
 
 		// }
 		return PageProcessorFabric.getInstance().create(action);
-
+		//
 	}
 
 	private LinkedList<Rule> getRules() {
@@ -119,42 +135,39 @@ public abstract class PageProcessor{
 			ArrayList<String> ar = new ArrayList<String>();
 			for (Element el : rules) {
 				Rule list = new Rule();
-				String str = "";
 
 				Elements th = el.select("th");
 
-				if (!th.isEmpty()) {// headers for rule fields
-					// int i=0;
-
-					for (Element e : th) {
+				if (!th.isEmpty())// get headers for rule fields
+					for (Element e : th) 
 						ar.add(e.html().toString());
-					}
-				}
+					
+				
 
-				Elements td = el.select("td");
+				Elements td = el.select("td"); // get values
 				if (!td.isEmpty()) {
 					int i = 0;
 					for (Element e : td) {
 
 						if (e.select("input").hasAttr("type")) {
-							list.add(ar.get(i), e.select("input").attr("name")
-									.toString());
+							list.add(ar.get(i), //key
+									e.select("input").attr("name").toString());//value
 						} else {
 							list.add(ar.get(i), e.html().toString());
 						}
 						i++;
 					}
 				}
+				
 				if (!list.isEmpty()) {
 					rulesMap.add(list);
-					System.out.println("List of already existing rules:\n"
-							+ list.toString() + "\n");
+					logger.info("List of rules in effect on server side:\n"+list.toString());
 				}
 
 			}
 			return rulesMap;
 		}
-		return this.rulesMap;
+		return PageProcessor.rulesMap;
 		// System.out.print(doc.html().toString());
 	}
 
@@ -163,11 +176,18 @@ public abstract class PageProcessor{
 	}
 
 	public boolean isEmptyExistingRulesMap() {
-		return existingRulesMap.isEmpty();
+		return serverSideRulesMap.isEmpty();
 	}
 
 	abstract void updateOptions();
 
 
+	@Override
+	public String toString(){
+		
+		return String.format(" ---- Page Result ----\nExisting rules:\n%s\nlist of options:\n%s\n", serverSideRulesMap.toString(), getOptions().toString());
+		
+		
+	}
 
 }

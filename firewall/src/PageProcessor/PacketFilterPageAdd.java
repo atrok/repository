@@ -1,13 +1,10 @@
 package PageProcessor;
 
-import java.util.LinkedList;
-
 import firewall.Rule;
 import firewall.Title;
 
 public class PacketFilterPageAdd extends PageProcessor {
 
-	private LinkedList<Rule> rules = new LinkedList<Rule>();
 
 	public PacketFilterPageAdd(String url) {
 		super(url);
@@ -26,23 +23,23 @@ public class PacketFilterPageAdd extends PageProcessor {
 	// multiple rules
 	public PacketFilterPageAdd(String url, Rule rule) {
 		super(url);
-		this.rules.add(rule);
-		 
+		ruleToRun=rule; 
 		title = Title.PACKETFILTER;
 	}
 
 	@Override
 	void updateOptions() {
-		//  
-		// options.put("Add", "Add");
-		for (Rule r : rules) {
-			r.addNewFieldToRule("Add", "Add");
-			r.addNewFieldToRule("enfilter", "on");
-			// HashMap h=r.getMap();
-			r.dropRemove();
-			r.dropEdit();
-		}
-		this.rulesMap = rules;
+
+			ruleToRun.addNewFieldToRule("Add", "Add");
+			ruleToRun.addNewFieldToRule("enfilter", "on");
+			ruleToRun.dropRemove();
+			ruleToRun.dropEdit();
+	}
+
+
+	public String toString(){
+		return this.getClass().toString()+"\n"+super.toString();
+		
 	}
 
 }

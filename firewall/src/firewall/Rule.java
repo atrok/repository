@@ -11,7 +11,20 @@ public class Rule {
 	private String DestPort;
 	private String Edit;
 	private String Remove;
+	private String Nonce;
 	
+	public String getNonce() {
+		return Nonce;
+	}
+
+	public Rule setNonce(String nonce) {
+		Nonce = nonce;
+		map.put("nonce", nonce);
+		return this;
+
+	}
+
+
 	private HashMap<String,String> map=new HashMap<String,String>();
 	private int i;
 
@@ -115,7 +128,9 @@ public class Rule {
 			break;
 		case "Delete":
 			setRemove(str);
+			break;
 		default:
+			map.put(key, str);
 			break;
 		}
 		
@@ -158,6 +173,11 @@ public class Rule {
 	public HashMap<String,String> getMap(){
 		return map;
 		
+	}
+	
+	public boolean isMapEmpty(){
+		
+		return (null==map);
 	}
 	
 	public void addNewFieldToRule(String key,String value){

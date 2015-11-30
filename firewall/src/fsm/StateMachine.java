@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 abstract public class StateMachine {
+	/*
 	protected State state;
 	private Map map = new HashMap();
 
@@ -44,4 +45,5 @@ abstract public class StateMachine {
 		}
 		throw new RuntimeException("Input not supported for current state");
 	}
+*/
 }

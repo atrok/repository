@@ -62,4 +62,9 @@ public class WaitPageProcessor extends PageProcessor {
 		return this;
 
 	}
+
+	public String toString(){
+		return this.getClass().toString()+"\n"+super.toString();
+		
+	}
 }

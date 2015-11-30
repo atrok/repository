@@ -18,7 +18,7 @@ public class IPvalidator implements IParameterValidator {
 		    
 
 		    
-		    if (num < 0 || num> 255||n.length<4 || null==value) {
+		    if (num < 0 || num> 255||n.length!=4 || null==value) {
 		      throw new ParameterException("Parameter " + name + " should be ip address as xxx.xxx.xxx.xxx (found " + value +")");
 		    }
 		    	

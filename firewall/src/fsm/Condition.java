@@ -12,7 +12,7 @@ public enum Condition {
 	},
 	ifEmptyRuleList{
 		boolean condition(Input i){ 
-			PageProcessor p=(PageProcessor)i;
+			
 			
 			return i!=null;}
 	},
@@ -22,6 +22,7 @@ public enum Condition {
 	ifPrevTransition{
 		boolean condition(Input i){ return i!=null;}
 	},
+	
 	ifTimerExpired{
 		boolean condition(Input i){ return i!=null;}
 	}
